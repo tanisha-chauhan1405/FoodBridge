@@ -2,10 +2,8 @@
   'use strict';
 
   const STORE = {
-    users: 'foodbridge_users_v2',
-    donations: 'foodbridge_donations_v2',
-    requests: 'foodbridge_requests_v2',
-    session: 'foodbridge_session_v2'
+    session: 'foodbridge_session_v2',
+    data: 'foodbridge_data_v2'
   };
 
   const images = {
@@ -41,6 +39,7 @@
   let browseSearch = '';
   let activeFilter = 'All food';
   let toastTimer = null;
+  let appData = { users: [], donations: [], requests: [] };
 
   function read(key, fallback) {
     try {
@@ -74,34 +73,32 @@
   }
 
   function seedData() {
-    const users = read(STORE.users, null);
-    if (!users || !users.length) {
-      write(STORE.users, [
-        { id: 'demo-donor', name: 'Aarav Mehta', organization: 'Harvest Table Kitchen', email: 'donor@foodbridge.demo', password: 'demo123', phone: '9876543210', city: 'Noida', role: 'donor', createdAt: new Date().toISOString() },
-        { id: 'demo-receiver', name: 'Ananya Sharma', organization: 'Udaan Community Centre', email: 'ngo@foodbridge.demo', password: 'demo123', phone: '9876501234', city: 'Noida', role: 'receiver', createdAt: new Date().toISOString() },
-        { id: 'demo-donor-2', name: 'Ritika Verma', organization: 'Daily Crust Bakery', email: 'bakery@foodbridge.demo', password: 'demo123', phone: '9876512345', city: 'Ghaziabad', role: 'donor', createdAt: new Date().toISOString() }
-      ]);
-    }
-
-    if (!read(STORE.donations, null)?.length) {
-      const seededAt = new Date().toISOString();
-      write(STORE.donations, [
+    const seededAt = new Date().toISOString();
+    appData.users = [
+      { id: 'demo-donor', name: 'Aarav Mehta', organization: 'Harvest Table Kitchen', email: 'donor@foodbridge.demo', phone: '9876543210', city: 'Noida', role: 'donor', password: 'demo123' },
+      { id: 'demo-receiver', name: 'Ananya Sharma', organization: 'Udaan Community Centre', email: 'ngo@foodbridge.demo', phone: '9876501234', city: 'Noida', role: 'receiver', password: 'demo123' },
+      { id: 'demo-donor-2', name: 'Ritika Verma', organization: 'Daily Crust Bakery', email: 'bakery@foodbridge.demo', phone: '9876512345', city: 'Ghaziabad', role: 'donor', password: 'demo123' }
+    ];
+    appData.donations = [
         { id: 'food-101', donorId: 'demo-donor', donorName: 'Aarav Mehta', donorOrg: 'Harvest Table Kitchen', title: 'Vegetable biryani boxes', category: 'Prepared meals', quantity: 24, unit: 'plates', servings: 24, pickupAddress: 'Sector 18 Market, Noida', city: 'Noida', pickupFrom: localDateTime(0.5), pickupUntil: localDateTime(3), description: 'Freshly prepared vegetable biryani packed in individual food-grade containers. Contains rice, mixed vegetables and mild spices.', image: images.biryani, status: 'available', createdAt: seededAt },
         { id: 'food-102', donorId: 'demo-donor-2', donorName: 'Ritika Verma', donorOrg: 'Daily Crust Bakery', title: 'Assorted bread & buns', category: 'Bakery', quantity: 18, unit: 'packets', servings: 18, pickupAddress: 'Vaishali Sector 4, Ghaziabad', city: 'Ghaziabad', pickupFrom: localDateTime(1), pickupUntil: localDateTime(5), description: 'A mix of fresh whole-wheat loaves, dinner rolls and buns from today’s bakery batch.', image: images.bread, status: 'available', createdAt: seededAt },
         { id: 'food-103', donorId: 'demo-donor', donorName: 'Aarav Mehta', donorOrg: 'Harvest Table Kitchen', title: 'Rice & dal lunch combo', category: 'Rice & grains', quantity: 12, unit: 'kg', servings: 30, pickupAddress: 'Sector 62, Noida', city: 'Noida', pickupFrom: localDateTime(0.25), pickupUntil: localDateTime(2.5), description: 'A simple, nourishing lunch combo packed separately. Please bring reusable crates for collection.', image: images.rice, status: 'available', createdAt: seededAt },
         { id: 'food-104', donorId: 'demo-donor-2', donorName: 'Ritika Verma', donorOrg: 'Daily Crust Bakery', title: 'Seasonal fruit baskets', category: 'Fruits & vegetables', quantity: 9, unit: 'kg', servings: 18, pickupAddress: 'Indirapuram Habitat Centre, Ghaziabad', city: 'Ghaziabad', pickupFrom: localDateTime(1.5), pickupUntil: localDateTime(6), description: 'A selection of ripe bananas, apples, oranges and seasonal fruit. Please inspect before distribution.', image: images.fruit, status: 'available', createdAt: seededAt },
         { id: 'food-105', donorId: 'demo-donor', donorName: 'Aarav Mehta', donorOrg: 'Harvest Table Kitchen', title: 'Fresh sandwich platter', category: 'Prepared meals', quantity: 30, unit: 'pieces', servings: 30, pickupAddress: 'Sector 50, Noida', city: 'Noida', pickupFrom: localDateTime(2), pickupUntil: localDateTime(5), description: 'Vegetarian sandwiches with cucumber, tomato and cheese. Kept chilled; collect in an insulated bag.', image: images.sandwich, status: 'available', createdAt: seededAt },
         { id: 'food-106', donorId: 'demo-donor-2', donorName: 'Ritika Verma', donorOrg: 'Daily Crust Bakery', title: 'Vegetable curry & rice trays', category: 'Prepared meals', quantity: 20, unit: 'servings', servings: 20, pickupAddress: 'Crossings Republik, Ghaziabad', city: 'Ghaziabad', pickupFrom: localDateTime(0.75), pickupUntil: localDateTime(4), description: 'Mild mixed-vegetable curry with steamed rice in sealed meal trays.', image: images.curry, status: 'available', createdAt: seededAt }
-      ]);
-    }
-    if (!read(STORE.requests, null)) write(STORE.requests, []);
+      ];
+    appData.requests = [];
   }
 
-  function getUsers() { return read(STORE.users, []); }
-  function getDonations() { return read(STORE.donations, []); }
-  function getRequests() { return read(STORE.requests, []); }
-  function saveDonations(value) { return write(STORE.donations, value); }
-  function saveRequests(value) { return write(STORE.requests, value); }
+  function getUsers() { return appData.users; }
+  function getDonations() { return appData.donations; }
+  function getRequests() { return appData.requests; }
+  function saveCollection(name, value) {
+    appData[name] = value;
+    return write(STORE.data, appData);
+  }
+  function saveDonations(value) { return saveCollection('donations', value); }
+  function saveRequests(value) { return saveCollection('requests', value); }
   function getCurrentUser() {
     const session = read(STORE.session, null);
     return session ? getUsers().find(user => user.id === session.userId) || null : null;
@@ -491,8 +488,8 @@ const contact = donor &&
     const data = new FormData(form);
     const email = String(data.get('email') || '').trim().toLowerCase();
     const password = String(data.get('password') || '');
-    const user = getUsers().find(item => item.email.toLowerCase() === email && item.password === password);
-    if (!user) return toast('Email or password is incorrect. Try one of the demo accounts.', 'error');
+    const user = getUsers().find(item => item.email.toLowerCase() === email);
+    if (!user || user.password !== password) return toast('Invalid email or password.', 'error');
     write(STORE.session, { userId: user.id });
     browseSearch = '';
     activeFilter = 'All food';
@@ -504,12 +501,21 @@ const contact = donor &&
     const data = new FormData(form);
     const values = Object.fromEntries(data.entries());
     const email = String(values.email || '').trim().toLowerCase();
-    if (getUsers().some(user => user.email.toLowerCase() === email)) return toast('An account with this email already exists. Please sign in.', 'error');
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return toast('Please enter a valid email address.', 'error');
-    const user = { id: uid('user'), name: String(values.name).trim(), organization: String(values.organization).trim(), email, password: String(values.password), phone: String(values.phone).trim(), city: String(values.city).trim(), role: values.role === 'donor' ? 'donor' : 'receiver', createdAt: new Date().toISOString() };
-    if (user.password.length < 6) return toast('Use a password with at least 6 characters.', 'error');
-    const users = getUsers(); users.push(user);
-    if (!write(STORE.users, users)) return;
+    if (String(values.password || '').length < 8) return toast('Use a password with at least 8 characters.', 'error');
+    if (getUsers().some(item => item.email.toLowerCase() === email)) return toast('An account with this email already exists.', 'error');
+    const user = {
+      id: uid('user'),
+      name: String(values.name || '').trim(),
+      organization: String(values.organization || '').trim(),
+      email,
+      phone: String(values.phone || '').trim(),
+      city: String(values.city || '').trim(),
+      role: values.role,
+      password: String(values.password)
+    };
+    appData.users.push(user);
+    saveCollection('users', appData.users);
     write(STORE.session, { userId: user.id });
     toast('Your FoodBridge account is ready. Welcome!');
     showApp('dashboard');
@@ -532,7 +538,7 @@ const contact = donor &&
       status: 'available', createdAt: new Date().toISOString()
     };
     const donations = getDonations(); donations.unshift(item);
-    if (!saveDonations(donations)) return;
+    saveDonations(donations);
     toast('Your food listing is live on the community board!');
     renderPublicPreview();
     showApp('listings');
@@ -548,7 +554,7 @@ const contact = donor &&
     if (getRequests().some(request => request.donationId === id && request.requesterId === user.id && request.status !== 'rejected')) return toast('You have already requested this listing.', 'warning');
     const request = { id: uid('request'), donationId: id, donorId: item.donorId, donorName: item.donorName, donorOrg: item.donorOrg, requesterId: user.id, requesterName: user.name, requesterOrg: user.organization, message: 'We would like to arrange a pickup for this food listing.', status: 'pending', servings: item.servings, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() };
     const requests = getRequests(); requests.unshift(request);
-    if (!saveRequests(requests)) return;
+    saveRequests(requests);
     closeModal();
     toast('Pickup request sent to the donor.');
     renderView('myrequests');
@@ -571,7 +577,7 @@ const contact = donor &&
         }
       });
     }
-    if (!saveRequests(requests)) return;
+    saveRequests(requests);
     const donations = getDonations();
     const donation = donations.find(item => item.id === request.donationId);
     if (donation) {
@@ -602,13 +608,26 @@ const contact = donor &&
   function handleProfile(form) {
     const user = getCurrentUser();
     const values = Object.fromEntries(new FormData(form).entries());
-    const users = getUsers();
-    const index = users.findIndex(item => item.id === user.id);
-    if (index < 0) return;
-    users[index] = { ...users[index], name: String(values.name).trim(), organization: String(values.organization).trim(), phone: String(values.phone).trim(), city: String(values.city).trim() };
-    if (!write(STORE.users, users)) return;
+    appData.users = getUsers().map(item => item.id === user.id ? { ...item, ...values } : item);
+    saveCollection('users', appData.users);
     toast('Profile details saved.');
     showApp('profile');
+  }
+
+  function demoLogin(role) {
+    const email = role === 'donor' ? 'donor@foodbridge.demo' : 'ngo@foodbridge.demo';
+    const user = getUsers().find(item => item.email === email);
+    if (!user) return toast('Demo account is unavailable.', 'error');
+    write(STORE.session, { userId: user.id });
+    browseSearch = '';
+    activeFilter = 'All food';
+    toast(role === 'donor' ? 'You are exploring the donor workspace.' : 'You are exploring the NGO workspace.');
+    showApp('dashboard');
+  }
+
+  function refreshFoodBoard() {
+    renderView('browse');
+    toast('Food board refreshed.');
   }
 
   function closeMobileSidebar() { $('#sidebar')?.classList.remove('open'); }
@@ -625,11 +644,7 @@ const contact = donor &&
       case 'back-home': showPublic(); break;
       case 'demo-login': {
         const role = actionNode.dataset.role;
-        const accountId = role === 'donor' ? 'demo-donor' : 'demo-receiver';
-        write(STORE.session, { userId: accountId });
-        browseSearch = ''; activeFilter = 'All food';
-        toast(role === 'donor' ? 'You are exploring the donor workspace.' : 'You are exploring the NGO workspace.');
-        showApp('dashboard');
+        demoLogin(role);
         break;
       }
       case 'logout': write(STORE.session, null); showPublic(); toast('You have been signed out.'); break;
@@ -645,7 +660,7 @@ const contact = donor &&
       case 'notifications': showNotifications(); break;
       case 'filter-food': activeFilter = actionNode.dataset.filter || 'All food'; renderView('browse'); break;
       case 'clear-filters': activeFilter = 'All food'; browseSearch = ''; renderView('browse'); break;
-      case 'refresh-food': renderView('browse'); toast('Food board refreshed.'); break;
+      case 'refresh-food': refreshFoodBoard(); break;
     }
   });
 
@@ -734,9 +749,21 @@ const contact = donor &&
   });
   $$('#siteNav a').forEach(link => link.addEventListener('click', () => $('#siteNav').classList.remove('mobile-open')));
 
-  // Initialise demo data and restore an existing local session when present.
+  // Load browser-local app data before restoring a local browser session.
   seedData();
-  renderPublicPreview();
-  const existingUser = getCurrentUser();
-  if (existingUser) showApp('dashboard'); else showPublic();
+  function initializeApp() {
+    const storedData = read(STORE.data, null);
+    if (storedData && Array.isArray(storedData.users) && Array.isArray(storedData.donations) && Array.isArray(storedData.requests)) {
+      appData = storedData;
+    } else {
+      write(STORE.data, appData);
+    }
+    renderPublicPreview();
+    const existingUser = getCurrentUser();
+    if (existingUser) showApp('dashboard'); else {
+      write(STORE.session, null);
+      showPublic();
+    }
+  }
+  initializeApp();
 })();
